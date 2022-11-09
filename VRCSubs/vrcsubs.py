@@ -17,8 +17,7 @@ try:
 except ImportError:
     from yaml import Loader
 
-
-config = {'FollowMicMute': True, 'CapturedLanguage': "en-US", 'EnableTranslation': False, 'TranslateMethod': "Google", 'TranslateToken': "", "TranslateTo": "en-US", 'AllowOSCControl': True, 'Pause': False, 'TranslateInterumResults': True, 'OSCControlPort': 9001}
+config = {'ShowTypingIndicator': True, 'FollowMicMute': True, 'CapturedLanguage': "en-US", 'EnableTranslation': False, 'TranslateMethod': "Google", 'TranslateToken': "", "TranslateTo": "en-US", 'AllowOSCControl': True, 'Pause': False, 'TranslateInterumResults': True, 'OSCControlPort': 9001, 'OSCSendPort':9000, 'OSCURL': "127.0.0.1"}
 state = {'selfMuted': False}
 state_lock = threading.Lock()
 
@@ -49,7 +48,7 @@ SOUND PROCESSING THREAD
 '''
 def process_sound():
     global audio_queue, r, config
-    client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
+    client = udp_client.SimpleUDPClient(config['OSCURL'], config['OSCSendPort'])
     current_text = ""
     last_text = ""
     last_disp_time = datetime.datetime.now()
@@ -78,7 +77,8 @@ def process_sound():
         if config["Pause"]:
             continue
 
-        client.send_message("/chatbox/typing", (not final))
+        if config['ShowTypingIndicator']:
+            client.send_message("/chatbox/typing", (not final))
 
         if config["EnableTranslation"] and not config["TranslateInterumResults"] and not final:
             continue
